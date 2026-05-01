@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+
+  /* Primaries */
+  --color-civic-teal: #2e7d8c;
+  --color-deep-civic: #2f3b42;
+
+  /* Secondaries */
+  --color-forum-periwinkle: #6b7ec4;
+  --color-living-sage: #6a9e7f;
+  --color-warm-sand: #c8b99a;
+
+  /* Accents */
+  --color-action-amber: #d4883a;
+  --color-civic-coral: #c96b56;
+
+  /* Gamification */
+  --color-civic-gold: #e6a817;
+
+  /* Performance Scoring */
+  --color-score-high: #4a8c6a; /* Civic Verdant */
+  --color-score-mid: #b8882a;  /* Civic Ochre */
+  --color-score-low: #a04040;  /* Civic Oxide */
+
+  /* Neutrals */
+  --color-forum-white: #f5f3ef;
+  --color-pale-stone: #eae6df;
+  --color-mist-grey: #d4cfc8;
+  --color-slate-shadow: #6b6b70;
+  --color-celebration-mist: #eae6f5;
+}
+
+/* Accessibility Mode Overrides */
+.accessibility-hc {
+  --color-forum-white: #ffffff;
+  --color-pale-stone: #fafafa;
+  --color-deep-civic: #000000;
+  --color-civic-teal: #004d5a;
+  --color-slate-shadow: #222222;
+  --color-mist-grey: #666666;
+  --color-action-amber: #8a5700;
+  --color-score-low: #7a0000;
+  --color-score-mid: #6b4e00;
+  --color-score-high: #004d2a;
+}
+
+.accessibility-fs-large {
+  font-size: 115%;
+}
+
+.accessibility-fs-large .text-\[10px\] { font-size: 14px; }
+.accessibility-fs-large .text-xs { font-size: 16px; }
+.accessibility-fs-large .text-sm { font-size: 18px; }
+.accessibility-fs-large .text-lg { font-size: 22px; }
+
+@layer base {
+  body {
+    @apply bg-forum-white text-deep-civic antialiased;
+  }
+}

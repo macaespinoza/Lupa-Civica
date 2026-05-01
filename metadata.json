@@ -1,0 +1,8 @@
+{
+  "name": "Lupa Cívica Chile",
+  "description": "Plataforma de fiscalización ciudadana del Congreso Nacional de Chile.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

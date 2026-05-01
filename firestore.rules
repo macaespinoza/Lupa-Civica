@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. Regions and Parties: Public Read
+    match /regions/{regionId} {
+      allow get, list: if true;
+    }
+    match /parties/{partyId} {
+      allow get, list: if true;
+    }
+
+    // 2. Legislators: Public Read
+    match /legislators/{legislatorId} {
+      allow get, list: if true;
+      allow write: if isSignedIn() && request.auth.token.email == 'maca.creates@gmail.com';
+      
+      match /votes/{voteId} {
+        allow get, list: if true;
+      }
+    }
+
+    // 3. Projects: Public Read
+    match /projects/{projectId} {
+      allow get, list: if true;
+    }
+
+    // 4. Messages (Derecho de Petición): Private to User
+    match /users/{userId}/messages/{messageId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && incoming().status == 'Sent'
+        && incoming().createdAt == request.time;
+    }
+  }
+}
