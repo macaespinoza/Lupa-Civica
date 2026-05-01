@@ -4,6 +4,7 @@
 import { Legislator } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, getDocs, query, orderBy, limit as fbLimit } from 'firebase/firestore';
+// @ts-expect-error - axios CJS/ESM dual-package types conflict with bundler moduleResolution
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 

@@ -11,7 +11,8 @@
  * Uso: npx tsx scripts/scrape-legislators.ts [--dry-run] [--limit N]
  */
 
-import axios, { AxiosError } from 'axios';
+// @ts-expect-error - axios CJS/ESM dual-package types conflict with bundler moduleResolution
+import axios, { type AxiosError } from 'axios';
 import * as cheerio from 'cheerio';
 import fs from 'fs';
 
