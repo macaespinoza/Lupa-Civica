@@ -319,20 +319,22 @@ async function scrapeBio(bcnUrl: string): Promise<{
     const $ = cheerio.load(html);
     
     // ── Extract biography text ──
-    // BCN stores the main content in .seleccionRS class
+    // BCN stores the main content in .seleccionRS class BUT includes header elements
+    // The actual bio starts after the intro paragraphs, inside .box-content > div > p
     let bioText = '';
     
-    // Primary: the seleccionRS container (confirmed from DOM analysis)
-    const seleccionRS = $('.seleccionRS');
-    if (seleccionRS.length) {
-      bioText = seleccionRS.text().trim();
+    // Primary: extract from .box-content .seleccionRS (main content area)
+    const boxContent = $('.box-content.seleccionRS');
+    if (boxContent.length) {
+      // Get all paragraphs and div content, skip the header elements (h2, h3 with seleccionRS)
+      bioText = boxContent.find('p').map((_i, el) => $(el).text().trim()).get().join(' ');
     }
     
-    // Fallback selectors
-    if (!bioText) {
-      bioText = $('#mw-content-text').text().trim() 
-        || $('.resena').text().trim() 
-        || $('article').text().trim();
+    // Fallback if no paragraphs found
+    if (!bioText || bioText.length < 50) {
+      bioText = $('.seleccionRS').text().trim();
+      // Remove the page title artifacts
+      bioText = bioText.replace(/^[\w\s]+Reseñas biográficas parlamentarias/i, '');
     }
     
     // Clean whitespace
@@ -344,31 +346,34 @@ async function scrapeBio(bcnUrl: string): Promise<{
     
     // ── Extract image ──
     let imageUrl = '';
-    // BCN typically has the portrait in an img tag near the top of the bio
+    // BCN stores the portrait in the infobox sidebar (#foto_ficha or #foto_ficha_new)
     const imgSelectors = [
-      '.seleccionRS img',
-      '.resena img',
-      '.foto img',
-      'img[src*="wiki"]',
-      'img[src*="resena"]',
-      'img[src*="parlamentari"]',
+      '#foto_ficha img',           // Infobox main image
+      '#foto_ficha_new img',       // Alternative container
+      '.infobox_v2 img',           // Inside infobox table
+      'img[src*="getimagenbiografia"]',  // Direct BCN image path
     ];
     
     for (const selector of imgSelectors) {
       const img = $(selector).first();
       if (img.length) {
-        // Prefer data-src (lazy loaded) over src (which might be a placeholder)
-        imageUrl = img.attr('data-src') || img.attr('data-original') || img.attr('src') || '';
-        // Skip placeholder/loading images
-        if (imageUrl.includes('cargando') || imageUrl.includes('loading') || imageUrl.includes('placeholder')) {
+        imageUrl = img.attr('src') || img.attr('data-src') || img.attr('data-original') || '';
+        if (!imageUrl || imageUrl.includes('cargando') || imageUrl.includes('loading') || imageUrl.includes('placeholder')) {
           imageUrl = '';
           continue;
         }
+        // BCN images use paths like /historiapolitica/getimagenbiografia/...
         if (imageUrl && !imageUrl.startsWith('http')) {
           imageUrl = `${BCN_BASE}${imageUrl}`;
         }
         if (imageUrl) break;
       }
+    }
+    
+    // Fallback: construct from og:image meta tag which has the correct URL
+    if (!imageUrl) {
+      const ogImage = $('meta[property="og:image"]').attr('content');
+      if (ogImage) imageUrl = ogImage;
     }
     
     // ── Extract structured data from bio text ──
@@ -403,7 +408,7 @@ export async function scrapeAllLegislators(options: {
   const deputies = await scrapeBCNListing(BCN_DEPUTIES_URL, 'Deputy');
   
   let allLegislators = [...senators, ...deputies];
-  
+
   // Deduplicate across both lists (some might appear in both)
   const seenUrls = new Set<string>();
   allLegislators = allLegislators.filter(l => {
@@ -411,12 +416,16 @@ export async function scrapeAllLegislators(options: {
     seenUrls.add(l.bcnUrl);
     return true;
   });
-  
+
   console.log(`\n📊 Total único: ${allLegislators.length} legisladores`);
-  
-  // Apply limit if specified
+
+  // Apply limit if specified - alternate between senators and deputies
   if (limit) {
-    allLegislators = allLegislators.slice(0, limit);
+    const limited: typeof allLegislators = [];
+    for (let i = 0; i < allLegislators.length && limited.length < limit; i++) {
+      limited.push(allLegislators[i]);
+    }
+    allLegislators = limited;
     console.log(`  (Limitado a ${limit} para prueba)`);
   }
   

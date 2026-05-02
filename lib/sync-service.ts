@@ -175,9 +175,14 @@ async function scrapeBio(bcnUrl: string) {
     const html = await fetchPage(bcnUrl);
     const $ = cheerio.load(html);
     
-    let bioText = $('.seleccionRS').text().trim();
-    if (!bioText) {
-      bioText = $('#mw-content-text').text().trim() || $('.resena').text().trim();
+    let bioText = '';
+    const boxContent = $('.box-content.seleccionRS');
+    if (boxContent.length) {
+      bioText = boxContent.find('p').map((_i, el) => $(el).text().trim()).get().join(' ');
+    }
+    if (!bioText || bioText.length < 50) {
+      bioText = $('.seleccionRS').text().trim();
+      bioText = bioText.replace(/^[\w\s]+Reseñas biográficas parlamentarias/i, '');
     }
     bioText = bioText.replace(/\s+/g, ' ').trim();
     
@@ -185,17 +190,21 @@ async function scrapeBio(bcnUrl: string) {
     const bio = bioText.length > 2000 ? bioText.substring(0, 2000) + '...' : bioText;
     
     let imageUrl = '';
-    for (const sel of ['.seleccionRS img', '.resena img', '.foto img', 'img[src*="wiki"]']) {
+    for (const sel of ['#foto_ficha img', '#foto_ficha_new img', '.infobox_v2 img', 'img[src*="getimagenbiografia"]']) {
       const img = $(sel).first();
       if (img.length) {
-        imageUrl = img.attr('data-src') || img.attr('data-original') || img.attr('src') || '';
-        if (imageUrl.includes('cargando') || imageUrl.includes('loading') || imageUrl.includes('placeholder')) {
+        imageUrl = img.attr('src') || img.attr('data-src') || '';
+        if (!imageUrl || imageUrl.includes('cargando') || imageUrl.includes('loading')) {
           imageUrl = '';
           continue;
         }
         if (imageUrl && !imageUrl.startsWith('http')) imageUrl = `${BCN_BASE}${imageUrl}`;
         if (imageUrl) break;
       }
+    }
+    if (!imageUrl) {
+      const ogImage = $('meta[property="og:image"]').attr('content');
+      if (ogImage) imageUrl = ogImage;
     }
     
     return { bio, imageUrl, party: extractParty(fullBio), region: extractRegion(fullBio) };
