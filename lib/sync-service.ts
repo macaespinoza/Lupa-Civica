@@ -1,6 +1,6 @@
 'use server';
 
-import { Firestore } from '@google-cloud/firestore';
+import { Firestore, FieldValue } from '@google-cloud/firestore';
 import { Legislator } from '@/lib/types';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -269,7 +269,7 @@ export async function scrapeAndSyncLegislators() {
           imageUrl: bioData.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(leg.name)}&background=004d5a&color=fff&size=400`,
           bio: bioData.bio || `${title} de Chile. Biografía en proceso de actualización.`,
           bcnUrl: leg.bcnUrl,
-          updatedAt: Firestore.FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
           efficiencyScore: 70 + Math.random() * 25,
           stats: {
             attendanceRate: 90 + Math.random() * 9,
@@ -325,7 +325,7 @@ export async function seedRealData() {
         votingParticipation: 92 + Math.random() * 7,
       },
       bio: `${leg.title} representante de la zona ${leg.region}. Comprometido/a con la fiscalización y la transparencia legislativa.`,
-      updatedAt: Firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
     await db.collection('legislators').doc(leg.id).set(data, { merge: true });
   }

@@ -1,5 +1,5 @@
 # Paso 1: Construcción
-FROM node:18-slim AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Paso 2: Ejecución
-FROM node:18-slim
+FROM node:20-slim
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production
