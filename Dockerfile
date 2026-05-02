@@ -11,7 +11,9 @@ FROM node:18-slim
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production
-COPY --from=builder /app/dist ./dist
-# Asegúrate de que tu app escuche en el puerto definido por la variable de entorno PORT
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 EXPOSE 8080
-CMD ["node", "dist/index.js"]
+ENV PORT=8080
+CMD ["node", "server.js"]
