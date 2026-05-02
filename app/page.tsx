@@ -1,14 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, BarChart3, Users, Mail, Gavel, Globe, ChevronRight } from 'lucide-react';
-import { mockLegislators } from '@/lib/mockData';
+import { Search, BarChart3, Users, Mail, Gavel, Globe, ChevronRight, Loader2, LogOut } from 'lucide-react';
+import { useLegislators } from '@/hooks/use-legislators';
+import { useAuth } from '@/hooks/use-auth';
 import { LegislatorCard } from '@/components/legislator-card';
 import { AccessibilityToggle } from '@/components/accessibility-toggle';
+import { LoginModal } from '@/components/login-modal';
 
 export default function LandingPage() {
+  const { legislators, loading } = useLegislators();
+  const { user, signOut } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   return (
     <div className="flex flex-col min-h-screen bg-forum-white">
       {/* Skip to Content for screen readers */}
@@ -35,12 +40,32 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <AccessibilityToggle />
-            <button className="bg-deep-civic/40 border border-mist-grey/20 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-civic-teal transition-colors">
-              Acceso
-            </button>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <Link href="/admin" className="text-[10px] font-bold text-white/80 hover:text-white uppercase tracking-widest transition-colors">
+                  Admin
+                </Link>
+                <button 
+                  onClick={() => signOut()}
+                  className="flex items-center gap-2 bg-deep-civic/40 border border-mist-grey/20 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-civic-teal transition-colors"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowLoginModal(true)}
+                className="bg-deep-civic/40 border border-mist-grey/20 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-civic-teal transition-colors"
+              >
+                Acceso
+              </button>
+            )}
           </div>
         </div>
       </nav>
+
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
       <main id="main-content">
         {/* Hero Section */}
@@ -157,9 +182,16 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {mockLegislators.slice(0, 4).map((l) => (
-            <LegislatorCard key={l.id} legislator={l} />
-          ))}
+          {loading ? (
+            <div className="col-span-4 text-center py-12">
+              <Loader2 className="w-6 h-6 text-civic-teal animate-spin mx-auto mb-2" />
+              <p className="text-mist-grey text-xs uppercase tracking-widest">Cargando...</p>
+            </div>
+          ) : (
+            legislators.slice(0, 4).map((l) => (
+              <LegislatorCard key={l.id} legislator={l} />
+            ))
+          )}
         </div>
       </section>
 

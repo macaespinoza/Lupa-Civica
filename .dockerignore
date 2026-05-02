@@ -1,0 +1,43 @@
+# dependencies
+node_modules
+npm-debug.log
+*.log
+
+# build output
+.next
+out
+dist
+
+# environment files
+.env
+.env.local
+.env.*.local
+.env.example
+
+# credentials and keys
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!.eslintrc.json
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# debug & test files
+scripts/debug_*.html
+coverage
+*.test.ts
+*.test.tsx
+
+# Firebase
+.firebase
+firestore-emulator.keys.json
+application-default-credentials.json

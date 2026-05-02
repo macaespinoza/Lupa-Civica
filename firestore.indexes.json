@@ -1,0 +1,69 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "legislators",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "regionId", "order": "ASCENDING" },
+        { "fieldPath": "type", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "legislators",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "partyId", "order": "ASCENDING" },
+        { "fieldPath": "type", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "legislators",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "efficiencyScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "legislators",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "regionId", "order": "ASCENDING" },
+        { "fieldPath": "district", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "legislators",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "gender", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chamber", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

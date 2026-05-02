@@ -9,17 +9,18 @@
     "lint": "eslint .",
     "clean": "next clean",
     "scrape": "npx tsx scripts/scrape-legislators.ts",
-    "scrape:test": "npx tsx scripts/scrape-legislators.ts --limit 5"
+    "scrape:test": "npx tsx scripts/scrape-legislators.ts --limit 5",
+    "upload:firestore": "npx tsx scripts/upload-to-firestore.ts"
   },
   "dependencies": {
-    "@firebase/eslint-plugin-security-rules": "^0.0.2",
-    "@google/genai": "^1.17.0",
+    "@google-cloud/firestore": "^7.9.0",
     "@hookform/resolvers": "^5.2.1",
     "autoprefixer": "^10.4.21",
     "axios": "^1.15.2",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "firebase": "^12.12.1",
     "lucide-react": "^0.553.0",
     "motion": "^12.23.24",
@@ -36,9 +37,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.19.12",
     "eslint": "9.39.1",
     "eslint-config-next": "16.0.8",
-    "firebase-tools": "^15.0.0",
     "tailwindcss": "4.1.11",
     "tw-animate-css": "^1.4.0",
     "typescript": "5.9.3"

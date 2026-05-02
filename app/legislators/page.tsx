@@ -2,12 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { LegislatorCard } from '@/components/legislator-card';
-import { mockLegislators } from '@/lib/mockData';
-import { Search, Filter, SortDesc, SortAsc, MapPin, Users, Info, ChevronDown, Award, AlertTriangle } from 'lucide-react';
+import { useLegislators } from '@/hooks/use-legislators';
+import { Search, Filter, SortDesc, SortAsc, MapPin, Users, Info, ChevronDown, Award, AlertTriangle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LegislatorsPage() {
+  const { legislators, loading, error } = useLegislators();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [filterRegion, setFilterRegion] = useState('All');
@@ -16,11 +17,11 @@ export default function LegislatorsPage() {
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
 
-  const regions = useMemo(() => ['All', ...Array.from(new Set(mockLegislators.map(l => l.region)))], []);
-  const coalitions = useMemo(() => ['All', ...Array.from(new Set(mockLegislators.map(l => l.coalition || 'Sin Alianza')))], []);
+  const regions = useMemo(() => ['All', ...Array.from(new Set(legislators.map(l => l.region)))], [legislators]);
+  const coalitions = useMemo(() => ['All', ...Array.from(new Set(legislators.map(l => l.coalition || 'Sin Alianza')))], [legislators]);
 
   const filteredLegislators = useMemo(() => {
-    return mockLegislators
+    return legislators
       .filter(l => {
         const matchesSearch = l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                              l.party.toLowerCase().includes(searchTerm.toLowerCase());
@@ -36,13 +37,28 @@ export default function LegislatorsPage() {
           ? b.efficiencyScore - a.efficiencyScore 
           : a.efficiencyScore - b.efficiencyScore;
       });
-  }, [searchTerm, filterType, filterRegion, filterCoalition, filterGender, sortOrder]);
+  }, [legislators, searchTerm, filterType, filterRegion, filterCoalition, filterGender, sortOrder]);
 
-  const topThree = useMemo(() => [...mockLegislators].sort((a, b) => b.efficiencyScore - a.efficiencyScore).slice(0, 3), []);
-  const bottomThree = useMemo(() => [...mockLegislators].sort((a, b) => a.efficiencyScore - b.efficiencyScore).slice(0, 3), []);
+  const topThree = useMemo(() => [...legislators].sort((a, b) => b.efficiencyScore - a.efficiencyScore).slice(0, 3), [legislators]);
+  const bottomThree = useMemo(() => [...legislators].sort((a, b) => a.efficiencyScore - b.efficiencyScore).slice(0, 3), [legislators]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 py-32 text-center">
+        <Loader2 className="w-8 h-8 text-civic-teal animate-spin mx-auto mb-4" />
+        <p className="text-mist-grey text-sm uppercase tracking-widest">Cargando legisladores...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
+      {error && (
+        <div className="mb-6 p-4 bg-action-amber/10 border border-action-amber/30 rounded-sm">
+          <p className="text-action-amber text-xs font-bold uppercase tracking-widest">{error}</p>
+        </div>
+      )}
+
       {/* Ranking Panel / Summary */}
       <section className="mb-16 grid md:grid-cols-2 gap-8">
         <div className="bg-white border border-mist-grey p-8 rounded-sm shadow-sm">
@@ -78,7 +94,7 @@ export default function LegislatorsPage() {
             {bottomThree.map((l, i) => (
               <div key={l.id} className="flex items-center justify-between p-3 bg-pale-stone/50 hover:bg-pale-stone transition-colors border border-transparent hover:border-mist-grey">
                 <div className="flex items-center gap-4">
-                  <span className="font-mono text-xs font-bold text-action-amber">#{mockLegislators.length - i}</span>
+                  <span className="font-mono text-xs font-bold text-action-amber">#{legislators.length - i}</span>
                   <div>
                     <p className="text-xs font-bold text-deep-civic leading-none mb-1">{l.name}</p>
                     <p className="text-[10px] text-slate-shadow uppercase">{l.party}</p>
@@ -234,7 +250,7 @@ export default function LegislatorsPage() {
               className="relative"
             >
               <div className="absolute top-2 left-2 z-20 w-7 h-7 bg-white text-deep-civic rounded-sm flex items-center justify-center font-mono text-[10px] font-bold shadow-md border border-mist-grey">
-                {String(mockLegislators.indexOf(l) + 1).padStart(2, '0')}
+                {String(index + 1).padStart(2, '0')}
               </div>
               <LegislatorCard legislator={l} />
             </motion.div>

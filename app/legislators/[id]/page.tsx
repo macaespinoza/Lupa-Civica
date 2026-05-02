@@ -2,15 +2,25 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { mockLegislators } from '@/lib/mockData';
+import { useLegislators } from '@/hooks/use-legislators';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Mail, Calendar, ShieldAlert, Award, FileText, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Mail, Calendar, ShieldAlert, Award, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LegislatorDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const legislator = mockLegislators.find(l => l.id === params.id);
+  const { legislators, loading } = useLegislators();
+  const legislator = legislators.find(l => l.id === params.id);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 text-civic-teal animate-spin mb-4" />
+        <p className="text-mist-grey text-sm uppercase tracking-widest">Cargando...</p>
+      </div>
+    );
+  }
 
   if (!legislator) {
     return (

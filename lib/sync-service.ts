@@ -1,13 +1,9 @@
-
 'use server';
 
+import { Firestore } from '@google-cloud/firestore';
 import { Legislator } from '@/lib/types';
-import { db } from '@/lib/firebase';
-import { collection, doc, setDoc, getDocs, query, orderBy, limit as fbLimit } from 'firebase/firestore';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-
-// ─── Configuration ──────────────────────────────────────────────────────────
 
 const BCN_BASE = 'https://www.bcn.cl';
 const BCN_SENATORS_URL = `${BCN_BASE}/historiapolitica/resenas_parlamentarias/index.html?categ=en_ejercicio&filtros=2`;
@@ -18,7 +14,7 @@ const REQUEST_TIMEOUT = 15_000;
 const DELAY_BETWEEN_REQUESTS = 1_200;
 const USER_AGENT = 'LupaCivica/1.0 (Plataforma ciudadana de transparencia)';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+const db = new Firestore();
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -92,8 +88,6 @@ function extractDistrict(bioText: string, type: 'Senator' | 'Deputy'): string {
   const match = bioText.match(/Distrito\s*(?:Nº|N°|#)?\s*(\d+)/i);
   return match ? `Distrito N° ${match[1]}` : '';
 }
-
-// ─── Scraping Pipeline ──────────────────────────────────────────────────────
 
 async function fetchPage(url: string): Promise<string> {
   const { data } = await axios.get(url, {
@@ -213,18 +207,14 @@ async function scrapeBio(bcnUrl: string) {
   }
 }
 
-// ─── Public API ─────────────────────────────────────────────────────────────
-
 export async function scrapeAndSyncLegislators() {
   try {
-    console.log('🔎 Iniciando sincronización de legisladores...');
+    console.log('Iniciando sincronización de legisladores...');
 
-    // Scrape listings
     const senators = await scrapeBCNListing(BCN_SENATORS_URL, 'Senator');
     await sleep(DELAY_BETWEEN_REQUESTS);
     const deputies = await scrapeBCNListing(BCN_DEPUTIES_URL, 'Deputy');
 
-    // Deduplicate
     const seenUrls = new Set<string>();
     const allLegislators = [...senators, ...deputies].filter(l => {
       if (seenUrls.has(l.bcnUrl)) return false;
@@ -232,14 +222,12 @@ export async function scrapeAndSyncLegislators() {
       return true;
     });
 
-    console.log(`📊 Total encontrados: ${allLegislators.length}`);
+    console.log(`Total encontrados: ${allLegislators.length}`);
 
-    // Get senate emails
     const emailMap = await scrapeSenateEmails();
     await sleep(DELAY_BETWEEN_REQUESTS);
 
     const processed: string[] = [];
-    // Process in batches to avoid timeouts
     const batchSize = 30;
     const batch = allLegislators.slice(0, batchSize);
 
@@ -268,7 +256,7 @@ export async function scrapeAndSyncLegislators() {
         const id = generateId(leg.bcnUrl, leg.name);
         const district = extractDistrict(bioData.bio, leg.type);
 
-        const legislatorData: Partial<Legislator> & { bcnUrl: string; updatedAt: string } = {
+        const legislatorData = {
           id,
           name: leg.name,
           type: leg.type,
@@ -281,7 +269,7 @@ export async function scrapeAndSyncLegislators() {
           imageUrl: bioData.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(leg.name)}&background=004d5a&color=fff&size=400`,
           bio: bioData.bio || `${title} de Chile. Biografía en proceso de actualización.`,
           bcnUrl: leg.bcnUrl,
-          updatedAt: new Date().toISOString(),
+          updatedAt: Firestore.FieldValue.serverTimestamp(),
           efficiencyScore: 70 + Math.random() * 25,
           stats: {
             attendanceRate: 90 + Math.random() * 9,
@@ -293,8 +281,7 @@ export async function scrapeAndSyncLegislators() {
           },
         };
 
-        // Upsert to Firestore (merge: true acts as UPSERT)
-        await setDoc(doc(db, 'legislators', id), legislatorData, { merge: true });
+        await db.collection('legislators').doc(id).set(legislatorData, { merge: true });
         processed.push(leg.name);
         console.log(`✓ ${leg.name}`);
       } catch (err) {
@@ -309,46 +296,22 @@ export async function scrapeAndSyncLegislators() {
   }
 }
 
-/**
- * Fetch all legislators from Firestore.
- */
-export async function fetchLegislatorsFromFirestore(): Promise<Legislator[]> {
-  try {
-    const ref = collection(db, 'legislators');
-    const q = query(ref, orderBy('name'));
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return [];
-    
-    return snapshot.docs.map(doc => ({
-      ...doc.data(),
-      id: doc.id,
-    })) as Legislator[];
-  } catch (error) {
-    console.error('Error fetching legislators:', error);
-    return [];
-  }
-}
-
-/**
- * Seed initial data (manual curated list) for when scraping is not available.
- */
 export async function seedRealData() {
   const realLegislators = [
-    { id: 'achurra-diaz-ignacio', name: 'Ignacio Achurra Díaz', type: 'Deputy', title: 'Diputado', gender: 'M', region: 'RM Metropolitana', district: 'N° 14', email: 'ignacio.achurra@congreso.cl' },
-    { id: 'alessandri-vergara-jorge', name: 'Jorge Alessandri Vergara', type: 'Deputy', title: 'Diputado', gender: 'M', region: 'RM Metropolitana', district: 'N° 10', email: 'jorge.alessandri@congreso.cl' },
-    { id: 'alinco-bustos-rene', name: 'René Alinco Bustos', type: 'Deputy', title: 'Diputado', gender: 'M', region: 'XI de Aysén del General Carlos Ibáñez del Campo', district: 'N° 27', email: 'rene.alinco@congreso.cl' },
-    { id: 'araya-lerdo-cristian', name: 'Cristián Araya Lerdo de Tejada', type: 'Deputy', title: 'Diputado', gender: 'M', region: 'RM Metropolitana', district: 'N° 11', email: 'cristian.araya@congreso.cl' },
-    { id: 'araya-guerrero-jaime', name: 'Jaime Araya Guerrero', type: 'Deputy', title: 'Diputado', gender: 'M', region: 'II de Antofagasta', district: 'N° 3', email: 'jaime.araya@congreso.cl' },
-    { id: 'nunez-urrutia-paulina', name: 'Paulina Núñez Urrutia', type: 'Senator', title: 'Senadora', gender: 'F', region: 'Región de Antofagasta', district: 'Circunscripción 3', email: 'paulinanunez@senado.cl' },
-    { id: 'moreira-barros-ivan', name: 'Iván Moreira Barros', type: 'Senator', title: 'Senador', gender: 'M', region: 'Región de Los Lagos', district: 'Circunscripción 13', email: 'imoreira@senado.cl' },
-    { id: 'astudillo-peiretti-danisa', name: 'Danisa Astudillo Peiretti', type: 'Senator', title: 'Senadora', gender: 'F', region: 'Región de Tarapacá', district: 'Circunscripción 2', email: 'dastudillo@senado.cl' },
-    { id: 'campillai-rojas-fabiola', name: 'Fabiola Campillai Rojas', type: 'Senator', title: 'Senadora', gender: 'F', region: 'Región Metropolitana', district: 'Circunscripción 7', email: 'fcampillai@senado.cl' },
-    { id: 'cariola-oliva-karol', name: 'Karol Cariola Oliva', type: 'Senator', title: 'Senadora', gender: 'F', region: 'Región de Valparaíso', district: 'Circunscripción 6', email: 'karol.cariola@senado.cl' },
+    { id: 'achurra-diaz-ignacio', name: 'Ignacio Achurra Díaz', type: 'Deputy' as const, title: 'Diputado', gender: 'M' as const, region: 'RM Metropolitana', district: 'N° 14', email: 'ignacio.achurra@congreso.cl' },
+    { id: 'alessandri-vergara-jorge', name: 'Jorge Alessandri Vergara', type: 'Deputy' as const, title: 'Diputado', gender: 'M' as const, region: 'RM Metropolitana', district: 'N° 10', email: 'jorge.alessandri@congreso.cl' },
+    { id: 'alinco-bustos-rene', name: 'René Alinco Bustos', type: 'Deputy' as const, title: 'Diputado', gender: 'M' as const, region: 'XI de Aysén del General Carlos Ibáñez del Campo', district: 'N° 27', email: 'rene.alinco@congreso.cl' },
+    { id: 'araya-lerdo-cristian', name: 'Cristián Araya Lerdo de Tejada', type: 'Deputy' as const, title: 'Diputado', gender: 'M' as const, region: 'RM Metropolitana', district: 'N° 11', email: 'cristian.araya@congreso.cl' },
+    { id: 'araya-guerrero-jaime', name: 'Jaime Araya Guerrero', type: 'Deputy' as const, title: 'Diputado', gender: 'M' as const, region: 'II de Antofagasta', district: 'N° 3', email: 'jaime.araya@congreso.cl' },
+    { id: 'nunez-urrutia-paulina', name: 'Paulina Núñez Urrutia', type: 'Senator' as const, title: 'Senadora', gender: 'F' as const, region: 'Región de Antofagasta', district: 'Circunscripción 3', email: 'paulinanunez@senado.cl' },
+    { id: 'moreira-barros-ivan', name: 'Iván Moreira Barros', type: 'Senator' as const, title: 'Senador', gender: 'M' as const, region: 'Región de Los Lagos', district: 'Circunscripción 13', email: 'imoreira@senado.cl' },
+    { id: 'astudillo-peiretti-danisa', name: 'Danisa Astudillo Peiretti', type: 'Senator' as const, title: 'Senadora', gender: 'F' as const, region: 'Región de Tarapacá', district: 'Circunscripción 2', email: 'dastudillo@senado.cl' },
+    { id: 'campillai-rojas-fabiola', name: 'Fabiola Campillai Rojas', type: 'Senator' as const, title: 'Senadora', gender: 'F' as const, region: 'Región Metropolitana', district: 'Circunscripción 7', email: 'fcampillai@senado.cl' },
+    { id: 'cariola-oliva-karol', name: 'Karol Cariola Oliva', type: 'Senator' as const, title: 'Senadora', gender: 'F' as const, region: 'Región de Valparaíso', district: 'Circunscripción 6', email: 'karol.cariola@senado.cl' },
   ];
 
   for (const leg of realLegislators) {
-    const data: Partial<Legislator> = {
+    const data = {
       ...leg,
       party: 'Por definir (Auditoría)',
       imageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(leg.name)}&background=004d5a&color=fff&size=400`,
@@ -362,9 +325,9 @@ export async function seedRealData() {
         votingParticipation: 92 + Math.random() * 7,
       },
       bio: `${leg.title} representante de la zona ${leg.region}. Comprometido/a con la fiscalización y la transparencia legislativa.`,
-      updatedAt: new Date().toISOString(),
-    } as Partial<Legislator>;
-    await setDoc(doc(db, 'legislators', leg.id), data, { merge: true });
+      updatedAt: Firestore.FieldValue.serverTimestamp(),
+    };
+    await db.collection('legislators').doc(leg.id).set(data, { merge: true });
   }
 
   return { success: true, count: realLegislators.length };
