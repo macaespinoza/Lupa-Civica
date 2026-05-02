@@ -1,18 +1,17 @@
-FROM node:20-alpine AS deps
+# Paso 1: Construcción
+FROM node:18-slim AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+RUN npm install
 COPY . .
-RUN npm install @google-cloud/firestore
 RUN npm run build
 
-FROM node:20-alpine AS runner
+# Paso 2: Ejecución
+FROM node:18-slim
 WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE 3000
-CMD ["npm", "start"]
+COPY package*.json ./
+RUN npm install --only=production
+COPY --from=builder /app/dist ./dist
+# Asegúrate de que tu app escuche en el puerto definido por la variable de entorno PORT
+EXPOSE 8080
+CMD ["node", "dist/index.js"]
