@@ -1,11 +1,23 @@
-import { Firestore, FieldValue } from '@google-cloud/firestore';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const db = new Firestore();
+const firebaseConfig = {
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'lupa-bdd',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app, process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DB_ID || '(default)');
 
 interface ScrapedLegislator {
   id: string;
@@ -35,24 +47,28 @@ interface ScrapedLegislator {
 async function uploadLegislators(data: ScrapedLegislator[]) {
   console.log(`\n👤 Subiendo ${data.length} legisladores a Firestore...`);
 
-  const batch = db.batch();
+  const BATCH_SIZE = 500;
+  let batch = writeBatch(db);
   let batchCount = 0;
+  let totalCommitted = 0;
 
   for (const leg of data) {
-    const docRef = db.collection('legislators').doc(leg.id);
+    const docRef = doc(db, 'legislators', leg.id);
     const legislatorData = {
       ...leg,
       partyId: leg.party.toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, ''),
       regionId: leg.region.toLowerCase().replace(/región de /g, '').replace(/[\s\-]+/g, '_'),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
     batch.set(docRef, legislatorData, { merge: true });
     batchCount++;
+    totalCommitted++;
 
-    if (batchCount === 500) {
+    if (batchCount === BATCH_SIZE) {
       await batch.commit();
-      console.log(`  Progreso: ${batchCount}/${data.length}`);
+      console.log(`  Progreso: ${totalCommitted}/${data.length}`);
+      batch = writeBatch(db);
       batchCount = 0;
     }
   }
@@ -65,9 +81,12 @@ async function uploadLegislators(data: ScrapedLegislator[]) {
 }
 
 async function uploadToFirestore() {
-  const data = JSON.parse(fs.readFileSync('./scripts/scraped_data.json', 'utf-8')) as ScrapedLegislator[];
+  const data = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, 'scraped_data.json'), 'utf-8')
+  ) as ScrapedLegislator[];
 
-  console.log('🚀 Iniciando upload a Firestore (Google Cloud)...');
+  console.log('🚀 Iniciando upload a Firestore...');
+  console.log(`   Project: ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'lupa-bdd'}`);
   console.log(`   Total records: ${data.length}`);
 
   await uploadLegislators(data);
