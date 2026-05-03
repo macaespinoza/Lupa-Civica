@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAccessibility } from '@/lib/accessibility-context';
 import { Eye, Type, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function AccessibilityToggle() {
   const { highContrast, toggleHighContrast, fontSize, toggleFontSize } = useAccessibility();

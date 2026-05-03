@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Search, BarChart3, Users, Mail, Gavel, Globe, ChevronRight, Loader2, LogOut } from 'lucide-react';
 import { useLegislators } from '@/hooks/use-legislators';
 import { useAuth } from '@/hooks/use-auth';

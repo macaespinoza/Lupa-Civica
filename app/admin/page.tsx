@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { scrapeAndSyncLegislators } from '@/lib/sync-service';
 import { Database, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export default function AdminPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');

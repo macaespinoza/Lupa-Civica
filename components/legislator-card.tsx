@@ -3,7 +3,7 @@
 import React from 'react';
 import { Legislator } from '@/lib/types';
 import { getScoreGrade } from '@/lib/evaluator';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ExternalLink, Award, FileText, Calendar, Mail, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 

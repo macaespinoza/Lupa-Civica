@@ -5,7 +5,7 @@ import { LegislatorCard } from '@/components/legislator-card';
 import { useLegislators } from '@/hooks/use-legislators';
 import { Search, Filter, SortDesc, SortAsc, MapPin, Users, Info, ChevronDown, Award, AlertTriangle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function LegislatorsPage() {
   const { legislators, loading, error } = useLegislators();

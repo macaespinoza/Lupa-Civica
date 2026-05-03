@@ -3,7 +3,7 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLegislators } from '@/hooks/use-legislators';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ArrowLeft, Mail, Calendar, ShieldAlert, Award, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
