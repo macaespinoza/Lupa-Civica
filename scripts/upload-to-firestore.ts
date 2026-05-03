@@ -1,5 +1,4 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { Firestore } from '@google-cloud/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -7,17 +6,13 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const firebaseConfig = {
+const db = new Firestore({
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'lupa-bdd',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app, process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DB_ID || '(default)');
+  credentials: {
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    private_key: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  },
+});
 
 interface ScrapedLegislator {
   id: string;
@@ -47,37 +42,32 @@ interface ScrapedLegislator {
 async function uploadLegislators(data: ScrapedLegislator[]) {
   console.log(`\n👤 Subiendo ${data.length} legisladores a Firestore...`);
 
-  const BATCH_SIZE = 500;
-  let batch = writeBatch(db);
-  let batchCount = 0;
-  let totalCommitted = 0;
+  let uploaded = 0;
+  let errors = 0;
 
   for (const leg of data) {
-    const docRef = doc(db, 'legislators', leg.id);
-    const legislatorData = {
-      ...leg,
-      partyId: leg.party.toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, ''),
-      regionId: leg.region.toLowerCase().replace(/región de /g, '').replace(/[\s\-]+/g, '_'),
-      updatedAt: serverTimestamp(),
-    };
+    try {
+      const docRef = db.collection('legislators').doc(leg.id);
+      const legislatorData = {
+        ...leg,
+        partyId: leg.party.toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^a-z0-9_]/g, ''),
+        regionId: leg.region.toLowerCase().replace(/región de /g, '').replace(/[\s\-]+/g, '_'),
+      };
 
-    batch.set(docRef, legislatorData, { merge: true });
-    batchCount++;
-    totalCommitted++;
+      await docRef.set(legislatorData, { merge: true });
+      uploaded++;
 
-    if (batchCount === BATCH_SIZE) {
-      await batch.commit();
-      console.log(`  Progreso: ${totalCommitted}/${data.length}`);
-      batch = writeBatch(db);
-      batchCount = 0;
+      if (uploaded % 20 === 0) {
+        console.log(`  Progreso: ${uploaded}/${data.length}`);
+      }
+    } catch (err) {
+      errors++;
+      console.error(`  Error en ${leg.id}:`, err instanceof Error ? err.message : err);
     }
   }
 
-  if (batchCount > 0) {
-    await batch.commit();
-  }
-
-  console.log(`✅ Subidos: ${data.length}`);
+  console.log(`\n✅ Subidos: ${uploaded}/${data.length}`);
+  if (errors > 0) console.error(`❌ Errores: ${errors}`);
 }
 
 async function uploadToFirestore() {
