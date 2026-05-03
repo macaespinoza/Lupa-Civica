@@ -6,11 +6,15 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+const serviceAccount = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../lupa-civica-service-account.json'), 'utf-8')
+);
+
 const db = new Firestore({
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'lupa-bdd',
   credentials: {
-    client_email: process.env.FIREBASE_CLIENT_EMAIL,
-    private_key: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    client_email: serviceAccount.client_email,
+    private_key: serviceAccount.private_key,
   },
 });
 
