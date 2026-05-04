@@ -392,14 +392,17 @@ async function scrapeBio(bcnUrl: string): Promise<{
 export async function scrapeAllLegislators(options: { 
   dryRun?: boolean; 
   limit?: number;
+  startAt?: number;
 } = {}): Promise<ScrapedLegislator[]> {
-  const { dryRun = false, limit } = options;
+  const { dryRun = false, limit, startAt = 0 } = options;
+  const outputPath = './scripts/scraped_data.json';
   
   console.log('═══════════════════════════════════════════════════');
-  console.log('  🔎 LUPA CÍVICA — Scraper de Legisladores v2.0');
+  console.log('  🔎 LUPA CÍVICA — Scraper de Legisladores v2.1');
   console.log('═══════════════════════════════════════════════════');
   console.log(`  Modo: ${dryRun ? '🧪 DRY RUN (sin guardar)' : '💾 PRODUCCIÓN'}`);
   console.log(`  Límite: ${limit ? limit + ' legisladores' : 'Sin límite'}`);
+  if (startAt > 0) console.log(`  Iniciando desde el índice: ${startAt}`);
   console.log('');
 
   // Step 1: Scrape listings from BCN
@@ -419,27 +422,42 @@ export async function scrapeAllLegislators(options: {
 
   console.log(`\n📊 Total único: ${allLegislators.length} legisladores`);
 
-  // Apply limit if specified - alternate between senators and deputies
+  // Apply limit if specified
   if (limit) {
-    const limited: typeof allLegislators = [];
-    for (let i = 0; i < allLegislators.length && limited.length < limit; i++) {
-      limited.push(allLegislators[i]);
-    }
-    allLegislators = limited;
+    allLegislators = allLegislators.slice(0, limit);
     console.log(`  (Limitado a ${limit} para prueba)`);
   }
   
+  // Load existing data if we are resuming
+  let results: ScrapedLegislator[] = [];
+  if (fs.existsSync(outputPath)) {
+    try {
+      results = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
+      console.log(`  📂 Cargados ${results.length} registros existentes de ${outputPath}`);
+    } catch (e) {
+      console.warn('  ⚠ No se pudo leer el archivo existente, iniciando desde cero');
+      results = [];
+    }
+  }
+
   // Step 2: Get real senate emails
   const emailMap = await scrapeSenateEmails();
   await sleep(DELAY_BETWEEN_REQUESTS);
   
   // Step 3: Scrape individual bios
-  const results: ScrapedLegislator[] = [];
-  
-  for (let i = 0; i < allLegislators.length; i++) {
+  for (let i = startAt; i < allLegislators.length; i++) {
     const leg = allLegislators[i];
     const progress = `[${i + 1}/${allLegislators.length}]`;
     console.log(`\n${progress} 📝 Procesando: ${leg.name}`);
+    
+    // Check if we already have this legislator in results and we want to skip
+    const existingIdx = results.findIndex(r => r.bcnUrl === leg.bcnUrl);
+    
+    // SKIP if already processed and has a real bio
+    if (existingIdx !== -1 && results[existingIdx].bio && !results[existingIdx].bio.includes('Biografía en proceso')) {
+      console.log(`  ⏩ Saltando (ya procesado): ${leg.name}`);
+      continue;
+    }
     
     const bioData = await scrapeBio(leg.bcnUrl);
     await sleep(DELAY_BETWEEN_REQUESTS);
@@ -496,23 +514,26 @@ export async function scrapeAllLegislators(options: {
       },
     };
     
-    results.push(legislator);
+    if (existingIdx !== -1) {
+      results[existingIdx] = legislator;
+    } else {
+      results.push(legislator);
+    }
+
+    // Save incrementally
+    if (!dryRun) {
+      fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), 'utf-8');
+    }
     console.log(`  ✓ ${title} | ${bioData.party} | ${email}`);
   }
   
-  // Save results to JSON (always, for debugging)
-  const outputPath = './scripts/scraped_data.json';
-  fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), 'utf-8');
-  console.log(`\n💾 Datos guardados en ${outputPath}`);
-  
   // Summary
   console.log('\n═══════════════════════════════════════════════════');
-  console.log('  📊 RESUMEN');
+  console.log('  📊 RESUMEN FINAL');
   console.log('═══════════════════════════════════════════════════');
   console.log(`  Senadores: ${results.filter(r => r.type === 'Senator').length}`);
   console.log(`  Diputados: ${results.filter(r => r.type === 'Deputy').length}`);
   console.log(`  Total: ${results.length}`);
-  console.log(`  Partidos encontrados: ${new Set(results.map(r => r.party)).size}`);
   console.log('═══════════════════════════════════════════════════');
   
   return results;
@@ -525,8 +546,10 @@ if (require.main === module) {
   const dryRun = args.includes('--dry-run');
   const limitIdx = args.indexOf('--limit');
   const limit = limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : undefined;
+  const startAtIdx = args.indexOf('--start-at');
+  const startAt = startAtIdx !== -1 ? parseInt(args[startAtIdx + 1], 10) : undefined;
   
-  scrapeAllLegislators({ dryRun, limit })
+  scrapeAllLegislators({ dryRun, limit, startAt })
     .then(results => {
       console.log(`\n✅ Scraping completado: ${results.length} legisladores procesados`);
       process.exit(0);

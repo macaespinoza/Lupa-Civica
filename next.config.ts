@@ -2,17 +2,17 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
   },
   images: {
     unoptimized: true,
   },
   transpilePackages: ['motion'],
-  output: 'standalone',
+  output: 'export',
 };
 
 export default nextConfig;

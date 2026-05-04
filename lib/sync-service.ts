@@ -1,5 +1,3 @@
-'use server';
-
 import { Firestore, FieldValue } from '@google-cloud/firestore';
 import { Legislator } from '@/lib/types';
 import axios from 'axios';

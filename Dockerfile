@@ -1,38 +1,14 @@
-# Paso 1: Construcción
-FROM node:20-slim AS builder
+# Paso 1: Preparación
+FROM node:20-slim
 WORKDIR /app
-
-# Build-time args for Next.js (NEXT_PUBLIC_ vars must be available at build time)
-ARG NEXT_PUBLIC_FIREBASE_API_KEY
-ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
-ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-ARG NEXT_PUBLIC_FIREBASE_APP_ID
-ARG NEXT_PUBLIC_FIREBASE_FIRESTORE_DB_ID
-
-# Make build args available as env vars during build
-ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
-ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID
-ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
-ENV NEXT_PUBLIC_FIREBASE_FIRESTORE_DB_ID=$NEXT_PUBLIC_FIREBASE_FIRESTORE_DB_ID
 
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
 
-# Paso 2: Ejecución
-FROM node:20-slim
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --only=production
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+# Exponer el puerto
 EXPOSE 8080
 ENV PORT=8080
-CMD ["node", "server.js"]
+
+# El build se hará al arrancar el contenedor
+CMD ["sh", "-c", "npm run build && npm run start"]

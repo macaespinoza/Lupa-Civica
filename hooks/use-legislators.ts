@@ -23,19 +23,18 @@ export function useLegislators(): UseLegislatorsResult {
 
     try {
       const data = await fetchLegislatorsFromFirestore();
+      console.log('Datos recibidos de Firestore:', data.length);
 
       if (data.length > 0) {
         setLegislators(data);
       } else {
-        // Fallback to mock data if Firestore is empty
-        console.warn('Firestore vacío, usando datos mock como fallback');
-        setLegislators(mockLegislators);
+        console.warn('Firestore no devolvió documentos para la colección "legislators"');
+        setLegislators([]);
       }
     } catch (err) {
-      console.error('Error al cargar legisladores:', err);
-      setError('Error al cargar datos. Usando datos de ejemplo.');
-      // Fallback to mock data on error
-      setLegislators(mockLegislators);
+      console.error('Error crítico al cargar legisladores:', err);
+      setError('No se pudieron cargar los datos reales de la base de datos.');
+      setLegislators([]);
     } finally {
       setLoading(false);
     }
