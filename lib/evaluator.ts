@@ -3,14 +3,7 @@
  * Basado en Ley 20.880, Ley 20.730 y Ley de Transparencia.
  */
 
-export interface LegislatorStats {
-  attendanceRate: number; // 0-100
-  unjustifiedAbsences: number;
-  probityFinesUTM: number; // Multas de 5 a 50 UTM
-  lobbyMeetingsCount: number;
-  missedLobbyRegistrations: number; // Penalizaciones registradas
-  votingParticipation: number; // 0-100
-}
+import type { LegislatorStats } from './types';
 
 export function calculateEfficiencyScore(stats: LegislatorStats): number {
   let score = 100;

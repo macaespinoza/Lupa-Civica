@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   transpilePackages: ['motion'],
-  output: 'export',
 };
 
 export default nextConfig;

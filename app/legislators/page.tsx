@@ -12,13 +12,14 @@ export default function LegislatorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [filterRegion, setFilterRegion] = useState('All');
+  const [filterDistrict, setFilterDistrict] = useState('All');
   const [filterCoalition, setFilterCoalition] = useState('All');
   const [filterGender, setFilterGender] = useState('All');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
 
-  const regions = useMemo(() => ['All', ...Array.from(new Set(legislators.map(l => l.region)))], [legislators]);
-  const coalitions = useMemo(() => ['All', ...Array.from(new Set(legislators.map(l => l.coalition || 'Sin Alianza')))], [legislators]);
+  const districts = useMemo(() => ['All', ...Array.from(new Set(legislators.filter(l => l.type === 'Deputy').map(l => l.district)))], [legislators]);
+  const circumscriptions = useMemo(() => ['All', ...Array.from(new Set(legislators.filter(l => l.type === 'Senator').map(l => l.district)))], [legislators]);
 
   const filteredLegislators = useMemo(() => {
     return legislators
@@ -29,8 +30,9 @@ export default function LegislatorsPage() {
         const matchesRegion = filterRegion === 'All' || l.region === filterRegion;
         const matchesCoalition = filterCoalition === 'All' || (l.coalition || 'Sin Alianza') === filterCoalition;
         const matchesGender = filterGender === 'All' || l.gender === filterGender;
+        const matchesDistrict = filterDistrict === 'All' || l.district === filterDistrict;
         
-        return matchesSearch && matchesType && matchesRegion && matchesCoalition && matchesGender;
+        return matchesSearch && matchesType && matchesRegion && matchesDistrict && matchesCoalition && matchesGender;
       })
       .sort((a, b) => {
         return sortOrder === 'desc' 
@@ -188,10 +190,10 @@ export default function LegislatorsPage() {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="grid md:grid-cols-3 gap-6 pt-8">
+              <div className="grid md:grid-cols-4 gap-6 pt-8">
                 <div>
                   <label className="block text-[10px] font-bold text-mist-grey uppercase tracking-widest mb-3">Región</label>
-                  <select 
+                  <select
                     value={filterRegion}
                     onChange={(e) => setFilterRegion(e.target.value)}
                     className="w-full bg-white border border-mist-grey px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-civic-teal transition-all cursor-pointer"
@@ -202,9 +204,39 @@ export default function LegislatorsPage() {
                   </select>
                 </div>
 
+                {filterType === 'Deputy' && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-mist-grey uppercase tracking-widest mb-3">Distrito</label>
+                    <select
+                      value={filterDistrict}
+                      onChange={(e) => setFilterDistrict(e.target.value)}
+                      className="w-full bg-white border border-mist-grey px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-civic-teal transition-all cursor-pointer"
+                    >
+                      {districts.map(d => (
+                        <option key={d} value={d}>{d === 'All' ? 'Todos los Distritos' : d}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {filterType === 'Senator' && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-mist-grey uppercase tracking-widest mb-3">Circunscripción</label>
+                    <select
+                      value={filterDistrict}
+                      onChange={(e) => setFilterDistrict(e.target.value)}
+                      className="w-full bg-white border border-mist-grey px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-civic-teal transition-all cursor-pointer"
+                    >
+                      {circumscriptions.map(c => (
+                        <option key={c} value={c}>{c === 'All' ? 'Todas las Circunscripciones' : c}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-[10px] font-bold text-mist-grey uppercase tracking-widest mb-3">Alianza / Pacto</label>
-                  <select 
+                  <select
                     value={filterCoalition}
                     onChange={(e) => setFilterCoalition(e.target.value)}
                     className="w-full bg-white border border-mist-grey px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-civic-teal transition-all cursor-pointer"
