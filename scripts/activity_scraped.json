@@ -1,0 +1,104 @@
+[
+  {
+    "id": "agustin-romero-leiva",
+    "name": "Agustín Romero Leiva",
+    "type": "Deputy",
+    "party": "Republicano de Chile",
+    "activity": {
+      "totalBillsAuthored": 0,
+      "totalBillsCoAuthored": 0,
+      "recentBills": [],
+      "votingHistory": [],
+      "votingSummary": {
+        "inFavor": 0,
+        "against": 0,
+        "abstention": 0,
+        "paired": 0,
+        "absent": 0
+      },
+      "attendanceRate": 0,
+      "attendanceDetails": [
+        {
+          "period": "período 2022",
+          "present": 0,
+          "absent": 0,
+          "justifiedAbsences": {
+            "medical": 0,
+            "commission": 0,
+            "personal": 0,
+            "license": 0
+          },
+          "unjustifiedAbsences": 0
+        }
+      ],
+      "unjustifiedAbsences": 0,
+      "lastUpdated": "2026-05-05T00:10:51.543Z",
+      "source": "camara.cl"
+    },
+    "probity": {
+      "totalLobbyMeetings": 0,
+      "recentLobbyMeetings": [],
+      "missedLobbyRegistrations": 0,
+      "totalProperties": 0,
+      "properties": [],
+      "totalBusinessParticipations": 0,
+      "businesses": [],
+      "totalFines": 0,
+      "fines": [],
+      "pendingSanctions": 0,
+      "lastUpdated": "2026-05-05T00:10:51.543Z",
+      "source": "infoprobidad.cl"
+    }
+  },
+  {
+    "id": "alejandra-sepulveda-orbenes",
+    "name": "Alejandra Sepúlveda Orbenes",
+    "type": "Senator",
+    "party": "Federación Regionalista Verde Social",
+    "activity": {
+      "totalBillsAuthored": 0,
+      "totalBillsCoAuthored": 0,
+      "recentBills": [],
+      "votingHistory": [],
+      "votingSummary": {
+        "inFavor": 0,
+        "against": 0,
+        "abstention": 0,
+        "paired": 0,
+        "absent": 0
+      },
+      "attendanceRate": 0,
+      "attendanceDetails": [
+        {
+          "period": "período 2018",
+          "present": 0,
+          "absent": 0,
+          "justifiedAbsences": {
+            "medical": 0,
+            "commission": 0,
+            "personal": 0,
+            "license": 0
+          },
+          "unjustifiedAbsences": 0
+        }
+      ],
+      "unjustifiedAbsences": 0,
+      "lastUpdated": "2026-05-05T00:10:56.434Z",
+      "source": "senado.cl"
+    },
+    "probity": {
+      "totalLobbyMeetings": 0,
+      "recentLobbyMeetings": [],
+      "missedLobbyRegistrations": 0,
+      "totalProperties": 0,
+      "properties": [],
+      "totalBusinessParticipations": 0,
+      "businesses": [],
+      "totalFines": 0,
+      "fines": [],
+      "pendingSanctions": 0,
+      "lastUpdated": "2026-05-05T00:10:56.434Z",
+      "source": "infoprobidad.cl"
+    }
+  }
+]
