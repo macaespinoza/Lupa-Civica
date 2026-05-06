@@ -5,10 +5,10 @@
     "type": "Senator",
     "party": "Por la Democracia",
     "activity": {
-      "totalBillsAuthored": 0,
-      "totalBillsCoAuthored": 0,
-      "recentBills": [],
-      "votingHistory": [],
+      "attendanceRate": 83.81,
+      "sessionsAttended": 88,
+      "totalSessions": 105,
+      "totalBillsAuthored": 48,
       "votingSummary": {
         "inFavor": 0,
         "against": 0,
@@ -16,38 +16,8 @@
         "paired": 0,
         "absent": 0
       },
-      "attendanceRate": 0,
-      "attendanceDetails": [
-        {
-          "period": "Período 2022-2026",
-          "present": 0,
-          "absent": 100,
-          "unjustifiedAbsences": 0,
-          "justifiedAbsences": {
-            "medical": 0,
-            "commission": 0,
-            "personal": 0,
-            "license": 0
-          }
-        }
-      ],
-      "unjustifiedAbsences": 0,
-      "lastUpdated": "2026-05-05T04:25:12.137Z",
-      "source": "senado.cl"
-    },
-    "probity": {
-      "totalLobbyMeetings": 0,
-      "recentLobbyMeetings": [],
-      "missedLobbyRegistrations": 0,
-      "totalProperties": 0,
-      "properties": [],
-      "totalBusinessParticipations": 0,
-      "businesses": [],
-      "totalFines": 0,
-      "fines": [],
-      "pendingSanctions": 0,
-      "lastUpdated": "2026-05-05T04:25:12.137Z",
-      "source": "infoprobidad.cl"
+      "lastUpdated": "2026-05-06T18:22:04.810Z",
+      "source": "senado.cl (parlid=1110)"
     }
   },
   {
@@ -56,10 +26,10 @@
     "type": "Senator",
     "party": "Socialista de Chile",
     "activity": {
+      "attendanceRate": 0,
+      "sessionsAttended": 0,
+      "totalSessions": 0,
       "totalBillsAuthored": 0,
-      "totalBillsCoAuthored": 0,
-      "recentBills": [],
-      "votingHistory": [],
       "votingSummary": {
         "inFavor": 0,
         "against": 0,
@@ -67,38 +37,71 @@
         "paired": 0,
         "absent": 0
       },
+      "lastUpdated": "2026-05-06T18:22:08.051Z",
+      "source": "senado.cl (no match)"
+    }
+  },
+  {
+    "id": "andrea-paz-balladares-letelier",
+    "name": "Andrea Paz Balladares Letelier",
+    "type": "Senator",
+    "party": "Renovación Nacional",
+    "activity": {
       "attendanceRate": 0,
-      "attendanceDetails": [
-        {
-          "period": "Período 2022-2026",
-          "present": 0,
-          "absent": 100,
-          "unjustifiedAbsences": 0,
-          "justifiedAbsences": {
-            "medical": 0,
-            "commission": 0,
-            "personal": 0,
-            "license": 0
-          }
-        }
-      ],
-      "unjustifiedAbsences": 0,
-      "lastUpdated": "2026-05-05T04:25:37.038Z",
-      "source": "senado.cl"
-    },
-    "probity": {
-      "totalLobbyMeetings": 0,
-      "recentLobbyMeetings": [],
-      "missedLobbyRegistrations": 0,
-      "totalProperties": 0,
-      "properties": [],
-      "totalBusinessParticipations": 0,
-      "businesses": [],
-      "totalFines": 0,
-      "fines": [],
-      "pendingSanctions": 0,
-      "lastUpdated": "2026-05-05T04:25:37.038Z",
-      "source": "infoprobidad.cl"
+      "sessionsAttended": 0,
+      "totalSessions": 0,
+      "totalBillsAuthored": 0,
+      "votingSummary": {
+        "inFavor": 0,
+        "against": 0,
+        "abstention": 0,
+        "paired": 0,
+        "absent": 0
+      },
+      "lastUpdated": "2026-05-06T18:22:11.050Z",
+      "source": "senado.cl (no match)"
+    }
+  },
+  {
+    "id": "miguel-becker-alvear",
+    "name": "Miguel Becker Alvear",
+    "type": "Senator",
+    "party": "Renovación Nacional",
+    "activity": {
+      "attendanceRate": 0,
+      "sessionsAttended": 0,
+      "totalSessions": 0,
+      "totalBillsAuthored": 0,
+      "votingSummary": {
+        "inFavor": 0,
+        "against": 0,
+        "abstention": 0,
+        "paired": 0,
+        "absent": 0
+      },
+      "lastUpdated": "2026-05-06T18:22:14.595Z",
+      "source": "senado.cl (no match)"
+    }
+  },
+  {
+    "id": "karim-antonio-bianchi-retamales",
+    "name": "Karim Antonio Bianchi Retamales",
+    "type": "Senator",
+    "party": "Radical Social Demócrata",
+    "activity": {
+      "attendanceRate": 82.86,
+      "sessionsAttended": 87,
+      "totalSessions": 105,
+      "totalBillsAuthored": 4,
+      "votingSummary": {
+        "inFavor": 0,
+        "against": 0,
+        "abstention": 0,
+        "paired": 0,
+        "absent": 0
+      },
+      "lastUpdated": "2026-05-06T18:22:18.328Z",
+      "source": "senado.cl (parlid=1324)"
     }
   }
 ]

@@ -10,7 +10,9 @@
     "clean": "next clean",
     "scrape": "npx tsx scripts/scrape-legislators.ts",
     "scrape:test": "npx tsx scripts/scrape-legislators.ts --limit 5",
-    "upload:firestore": "npx tsx scripts/upload-to-firestore.ts"
+    "upload:firestore": "npx tsx scripts/upload-to-firestore.ts",
+    "scrape:activity": "npx tsx scripts/scrape-activity.ts --full",
+    "scrape:activity:test": "npx tsx scripts/scrape-activity.ts --dry-run --limit=5 --debug"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.9.0",
